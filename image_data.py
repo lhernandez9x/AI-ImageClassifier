@@ -27,4 +27,4 @@ def dataloader():
     trainloader = torch.utils.data.DataLoader(train_image_dataset, batch_size=32, shuffle=True)
     validloader = torch.utils.data.DataLoader(validate_image_dataset, batch_size=32)
 
-    return trainloader, validloader
+    return trainloader, validloader, train_image_dataset, validate_image_dataset
