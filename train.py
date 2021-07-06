@@ -31,11 +31,9 @@ else:
     model.classifier = classifier
 #Create Loss and Optimizer
 
-print(device)
-
 criterion = nn.NLLLoss()
 optimizer = optim.Adam(model.fc.parameters(), lr=float(args.learning_rate))
-print(optimizer)
+
 
 model.to(device)
 
@@ -44,10 +42,9 @@ data = dataloader()
 
 #Initial Variables
 epochs = args.epochs
-print(epochs)
 running_loss = 0
 
-for e in range(epochs):
+for e in range(int(epochs)):
     for inputs, labels in data[0]:
         inputs, labels = inputs.to(device), labels.to(device)
 
@@ -80,8 +77,22 @@ for e in range(epochs):
             accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
 
         print(f"Epoch {e+1}/{epochs}.. "
-              f"Train loss: {running_loss/len(trainloader):.3f}.. "
-              f"Validation loss: {validation_loss/len(validloader):.3f}.. "
-              f"Validation accuracy: {accuracy/len(validloader):.3f}")
+              f"Train loss: {running_loss/len(data[0]):.3f}.. "
+              f"Validation loss: {validation_loss/len(data[1]):.3f}.. "
+              f"Validation accuracy: {accuracy/len(data[1]):.3f}")
         running_loss = 0
         model.train()
+
+def save_checkpoint(model, dataset, classifier, arch, optimizer):
+
+    checkpoint = {'model': model,
+                  'classifier': classifier,
+                  'optimizer': optimizer,
+                  'arch': arch,
+                  'state_dict': model.state_dict(),
+                  'optimizer_state': optimizer.state_dict(),
+                  'class_to_idx': dataset.class_to_idx
+                  }
+    torch.save(checkpoint, 'checkpoints/checkpoint.pth')
+
+save_checkpoint(model, data[2], classifier, args.arch, optimizer)
