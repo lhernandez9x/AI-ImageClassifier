@@ -7,7 +7,7 @@ def get_train_args():
     parser = argparse.ArgumentParser()
 
     #Add arguments for image directory, model,
-    parser.add_argument('--dir', type=str, default='flowers/', help='Path to directory')
+    parser.add_argument('--dir', type=str, default='flowers', help='Path to directory')
     parser.add_argument('--arch', type=str, default='resnet152', help='Set the CNN model')
     parser.add_argument('--GPU', action='store_true', default=False, help='Use this to turn on the GPU')
     parser.add_argument('--epochs', type=int, default=10, help='Set number of epochs to train the network')
@@ -15,3 +15,11 @@ def get_train_args():
     parser.add_argument('--hidden_layers', type=int, default=1024, help='Set number of hidden layers')
 
     return parser.parse_args()
+
+args = get_train_args()
+print(args.dir)
+print(args.arch)
+print(args.GPU)
+print(args.epochs)
+print(args.learning_rate)
+print(args.hidden_layers)
