@@ -8,6 +8,7 @@ def get_predict_args():
 
     #Add arguments for image directory, model,
     parser.add_argument('--label_map', type=str, default='cat_to_name.json', help='Path to label file')
+    parser.add_argument('--GPU', action='store_true', default=False, help='Use this to turn on the GPU')
     parser.add_argument('--checkpoint', type=str, default='checkpoints/checkpoint.pth', help='Path to checkpoint file')
     parser.add_argument('--predict_image', type=str, default='flowers/test/60/image_02932.jpg',
                         help='Path for image to run in predict')
