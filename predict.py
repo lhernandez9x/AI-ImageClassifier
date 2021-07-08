@@ -1,17 +1,41 @@
 #imports
 import torch
+from torchvision import models
 import numpy as np
-from get_args import get_input_args
+from predict_args import get_predict_args
 from PIL import Image
 import json
 
-#load network
-checkpoint = torch.load('checkpoints/checkpoint.pth')
 #load args
-args = get_input_args()
+args = get_predict_args()
+#load network
+def load_checkpoint(path):
+    checkpoint = torch.load(path)
+
+    model = getattr(models, checkpoint['arch'])(pretrained=True)
+
+    for param in model.parameters():
+        param.requires_grad = False
+
+    # create classifier
+    if model.fc:
+        model.fc = checkpoint['classifier']
+    else:
+        model.classifier = checkpoint['classifier']
+
+    model.class_to_idx = checkpoint['class_to_idx']
+
+    optimizer = checkpoint['optimizer']
+    optimizer.load_state_dict(checkpoint['optimizer_state'])
+    model.load_state_dict(checkpoint['state_dict'])
+    model.eval()
+    return model
+
+
+model = load_checkpoint(args.checkpoint)
 
 #use GPU or CPU
-device = torch.device('cuda' if args.GPU else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() and args.GPU else 'cpu')
 
 def process_image(image):
 
@@ -82,18 +106,20 @@ def predict(image_path, model, topk):
         probs = torch.exp(output)
         probs = probs.topk(topk)
 
-        # converts probabilities and classes into numpy arrays
-        probabilities = probs[0].numpy()[0]
-        classes = [str(x) for x in probs[1].numpy()[0]]
-
         # convert classes to flower name
-        idx_to_class = {v: k for k, v in checkpoint['class_to_idx'].items()}
+        idx_to_class = {v: k for k, v in model.class_to_idx.items()}
+
+        # converts probabilities and classes into numpy arrays
+        probabilities = probs[0].cpu().numpy()[0]
+        classes = [idx_to_class[idx] for idx in probs[1].cpu().numpy()[0]]
+
+        # converts classes to name
         name = [cat_to_name[cls] for cls in classes]
         classes = name
 
     return probabilities, classes
 
-probabilities, classes = predict('flowers/test/60/image_02932.jpg', checkpoint['model'], args.topk)
+probabilities, classes = predict(args.predict_image, model, args.topk)
 
 print(probabilities, classes)
 

@@ -2,14 +2,14 @@
 import torch
 from torch import nn, optim
 from torchvision import models
-from get_args import get_input_args
+from train_args import get_train_args
 from image_data import dataloader
 
 # Load arguments from argparse into file
-args = get_input_args()
+args = get_train_args()
 
 #Set GPU or CPU
-device = torch.device('cuda' if args.GPU else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() and args.GPU else 'cpu')
 # Load the model
 model = eval('models.{}(pretrained=True)'.format(args.arch))
 
@@ -18,8 +18,15 @@ model = eval('models.{}(pretrained=True)'.format(args.arch))
 for param in model.parameters():
     param.requires_grad = False
 
+if args.arch == 'resnet152':
+    model = models.resnet152(pretrained=True)
+    input_size = 2048
+elif args.arch == 'densenet121':
+    model = models.densenet121(pretrained=True)
+    input_size = 1024
+
 #Create new Classifier
-classifier = nn.Sequential(nn.Linear(2048, int(args.hidden_layers)),
+classifier = nn.Sequential(nn.Linear(input_size, int(args.hidden_layers)),
                            nn.ReLU(),
                            nn.Dropout(0.2),
                            nn.Linear(int(args.hidden_layers), 102),
@@ -29,16 +36,19 @@ if model.fc:
     model.fc = classifier
 else:
     model.classifier = classifier
-#Create Loss and Optimizer
 
+#Create Loss and Optimizer
 criterion = nn.NLLLoss()
-optimizer = optim.Adam(model.fc.parameters(), lr=float(args.learning_rate))
+if model.fc:
+    optimizer = optim.Adam(model.fc.parameters(), lr=float(args.learning_rate))
+else:
+    optimizer = optim.Adam(model.classifier.parameters(), lr=float(args.learning_rate))
 
 
 model.to(device)
 
 #Training the Network
-data = dataloader()
+data = dataloader(args.dir)
 
 #Initial Variables
 epochs = args.epochs
@@ -85,13 +95,14 @@ for e in range(int(epochs)):
 
 def save_checkpoint(model, dataset, classifier, arch, optimizer):
 
-    checkpoint = {'model': model,
+    model.class_to_idx = dataset.class_to_idx
+    checkpoint = {
                   'classifier': classifier,
                   'optimizer': optimizer,
                   'arch': arch,
                   'state_dict': model.state_dict(),
                   'optimizer_state': optimizer.state_dict(),
-                  'class_to_idx': dataset.class_to_idx
+                  'class_to_idx': model.class_to_idx
                   }
     torch.save(checkpoint, 'checkpoints/checkpoint.pth')
 
