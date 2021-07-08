@@ -7,9 +7,10 @@ def get_predict_args():
     parser = argparse.ArgumentParser()
 
     #Add arguments for image directory, model,
-    parser.add_argument('--label_map', type=bool, default=False, help='Sets device to GPU or CPU')
-    parser.add_argument('--checkpoint', type=int, default=5, help='Returns number of predictions')
-    parser.add_argument('--predict_image', type=int, default=10, help='Set number of epochs to train the network')
+    parser.add_argument('--label_map', type=str, default='cat_to_name.json', help='Path to label file')
+    parser.add_argument('--checkpoint', type=str, default='checkpoints/checkpoint.pth', help='Path to checkpoint file')
+    parser.add_argument('--predict_image', type=str, default='flowers/test/60/image_02932.jpg',
+                        help='Path for image to run in predict')
     parser.add_argument('--topk', type=int, default=5, help='Returns number of predictions')
 
     return parser.parse_args()
