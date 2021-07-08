@@ -1,10 +1,10 @@
 import torch
 from torchvision import datasets, transforms
 
-def dataloader():
-    data_dir = 'flowers'
-    train_dir = data_dir + '/train'
-    valid_dir = data_dir + '/valid'
+def dataloader(dir):
+    dir = 'flowers'
+    train_dir = dir + '/train'
+    valid_dir = dir + '/valid'
 
 
     train_transforms = transforms.Compose([transforms.Resize(255),
